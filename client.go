@@ -283,3 +283,8 @@ func (c *Client) NewKeepaliveUserStreamService() *KeepaliveUserStreamService {
 func (c *Client) NewCloseUserStreamService() *CloseUserStreamService {
 	return &CloseUserStreamService{c: c}
 }
+
+// NewTickerPriceService init get symbol price ticker
+func (c *Client) NewSymbolPriceService() *SymbolPriceService {
+	return &SymbolPriceService{c: c}
+}

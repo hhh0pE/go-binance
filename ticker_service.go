@@ -116,3 +116,27 @@ type PriceChangeStats struct {
 	LastID             int64  `json:"lastId"`
 	Count              int64  `json:"count"`
 }
+
+type SymbolPriceService struct {
+	c      *Client
+	symbol string
+}
+
+// Do send request
+func (s *SymbolPriceService) Do(ctx context.Context, opts ...RequestOption) (res *SymbolPrice, err error) {
+	r := &request{
+		method:   "GET",
+		endpoint: "/api/v3/ticker/price",
+	}
+	r.setParam("symbol", s.symbol)
+	data, err := s.c.callAPI(ctx, r, opts...)
+	if err != nil {
+		return
+	}
+	res = new(SymbolPrice)
+	err = json.Unmarshal(data, res)
+	if err != nil {
+		return
+	}
+	return
+}
