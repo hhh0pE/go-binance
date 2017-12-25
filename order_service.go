@@ -17,6 +17,7 @@ type CreateOrderService struct {
 	newClientOrderID *string
 	stopPrice        *string
 	icebergQuantity  *string
+	newOrderRespType NewOrderRespType
 }
 
 // Symbol set symbol
@@ -73,6 +74,12 @@ func (s *CreateOrderService) IcebergQuantity(icebergQuantity string) *CreateOrde
 	return s
 }
 
+// NewOrderRespType set newOrderRespType
+func (s *CreateOrderService) NewOrderRespType(newOrderRespType NewOrderRespType) *CreateOrderService {
+	s.newOrderRespType = newOrderRespType
+	return s
+}
+
 func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, opts ...RequestOption) (data []byte, err error) {
 	r := &request{
 		method:   "POST",
@@ -101,6 +108,9 @@ func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, o
 	}
 	if s.price != "" {
 		m["price"] = s.price
+	}
+	if s.newOrderRespType != "" {
+		m["newOrderRespType"] = s.newOrderRespType
 	}
 
 	r.setFormParams(m)
@@ -138,6 +148,13 @@ type CreateOrderResponse struct {
 	OrderID       int64  `json:"orderId"`
 	ClientOrderID string `json:"clientOrderId"`
 	TransactTime  int64  `json:"transactTime"`
+	Price         string `json:"price"`
+	OrigQty       string `json:"origQty"`
+	ExecutedQty   string `json:"executedQty"`
+	Status        string `json:"status"`
+	TimeInForce   string `json:"timeInForce"`
+	Type          string `json:"type"`
+	Side          string `json:"side"`
 }
 
 // ListOpenOrdersService list opened orders
