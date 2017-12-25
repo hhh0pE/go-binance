@@ -80,12 +80,12 @@ func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, o
 		secType:  secTypeSigned,
 	}
 	m := params{
-		"symbol":      s.symbol,
-		"side":        s.side,
-		"type":        s.orderType,
-		"timeInForce": s.timeInForce,
-		"quantity":    s.quantity,
-		"price":       s.price,
+		"symbol": s.symbol,
+		"side":   s.side,
+		"type":   s.orderType,
+		// "timeInForce": s.timeInForce,
+		"quantity": s.quantity,
+		// "price":    s.price,
 	}
 	if s.newClientOrderID != nil {
 		m["newClientOrderId"] = *s.newClientOrderID
@@ -96,7 +96,15 @@ func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, o
 	if s.icebergQuantity != nil {
 		m["icebergQty"] = *s.icebergQuantity
 	}
+	if s.timeInForce != "" {
+		m["timeInForce"] = s.timeInForce
+	}
+	if s.price != "" {
+		m["price"] = s.price
+	}
+
 	r.setFormParams(m)
+
 	data, err = s.c.callAPI(ctx, r, opts...)
 	if err != nil {
 		return
@@ -213,6 +221,7 @@ func (s *GetOrderService) Do(ctx context.Context, opts ...RequestOption) (res *O
 	if err != nil {
 		return
 	}
+	// fmt.Println(string(data[:]))
 	return
 }
 

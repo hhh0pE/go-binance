@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/bitly/go-simplejson"
@@ -64,7 +65,7 @@ func NewClient(apiKey, secretKey string) *Client {
 		BaseURL:    "https://www.binance.com",
 		UserAgent:  "Binance/golang",
 		HTTPClient: http.DefaultClient,
-		Logger:     log.New(os.Stderr, "Binance-golang ", log.LstdFlags),
+		Logger:     log.New(os.Stderr, strconv.FormatInt(time.Now().UTC().Unix(), 10)+" ", log.LstdFlags),
 	}
 }
 
@@ -187,6 +188,10 @@ func (c *Client) NewPingService() *PingService {
 // NewServerTimeService init server time service
 func (c *Client) NewServerTimeService() *ServerTimeService {
 	return &ServerTimeService{c: c}
+}
+
+func (c *Client) NewExchangeInfoService() *ExchangeInfoService {
+	return &ExchangeInfoService{c: c}
 }
 
 // NewDepthService init depth service

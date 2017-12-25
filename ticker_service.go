@@ -60,12 +60,6 @@ func (s *ListPricesService) Do(ctx context.Context, opts ...RequestOption) (res 
 	return
 }
 
-// SymbolPrice define symbol and price pair
-type SymbolPrice struct {
-	Symbol string `json:"symbol"`
-	Price  string `json:"price"`
-}
-
 // PriceChangeStatsService show stats of price change in last 24 hours
 type PriceChangeStatsService struct {
 	c      *Client
@@ -94,6 +88,7 @@ func (s *PriceChangeStatsService) Do(ctx context.Context, opts ...RequestOption)
 	if err != nil {
 		return
 	}
+
 	return
 }
 
@@ -122,6 +117,18 @@ type SymbolPriceService struct {
 	symbol string
 }
 
+// SymbolPrice define symbol and price pair
+type SymbolPrice struct {
+	Symbol string `json:"symbol"`
+	Price  string `json:"price"`
+}
+
+// Symbol set symbol
+func (s *SymbolPriceService) Symbol(symbol string) *SymbolPriceService {
+	s.symbol = symbol
+	return s
+}
+
 // Do send request
 func (s *SymbolPriceService) Do(ctx context.Context, opts ...RequestOption) (res *SymbolPrice, err error) {
 	r := &request{
@@ -138,5 +145,6 @@ func (s *SymbolPriceService) Do(ctx context.Context, opts ...RequestOption) (res
 	if err != nil {
 		return
 	}
+
 	return
 }
