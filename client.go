@@ -40,6 +40,7 @@ const (
 
 	TimeInForceGTC TimeInForce = "GTC"
 	TimeInForceIOC TimeInForce = "IOC"
+	TimeInForceFOK TimeInForce = "FOK"
 
 	NewOrderRespTypeAck    NewOrderRespType = "ACK"
 	NewOrderRespTypeResult NewOrderRespType = "RESULT"
