@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/bitly/go-simplejson"
@@ -26,6 +27,9 @@ type OrderType string
 // TimeInForce define time in force type of order
 type TimeInForce string
 
+// NewOrderRespType define new order response type
+type NewOrderRespType string
+
 // Global enums
 const (
 	SideTypeBuy  SideType = "BUY"
@@ -36,6 +40,11 @@ const (
 
 	TimeInForceGTC TimeInForce = "GTC"
 	TimeInForceIOC TimeInForce = "IOC"
+	TimeInForceFOK TimeInForce = "FOK"
+
+	NewOrderRespTypeAck    NewOrderRespType = "ACK"
+	NewOrderRespTypeResult NewOrderRespType = "RESULT"
+	NewOrderRespTypeFull   NewOrderRespType = "FULL"
 
 	timestampKey  = "timestamp"
 	signatureKey  = "signature"
@@ -64,7 +73,7 @@ func NewClient(apiKey, secretKey string) *Client {
 		BaseURL:    "https://www.binance.com",
 		UserAgent:  "Binance/golang",
 		HTTPClient: http.DefaultClient,
-		Logger:     log.New(os.Stderr, "Binance-golang ", log.LstdFlags),
+		Logger:     log.New(os.Stderr, "[binance] "+strconv.FormatInt(time.Now().UTC().Unix(), 10)+" ", log.LstdFlags),
 	}
 }
 
@@ -189,6 +198,10 @@ func (c *Client) NewServerTimeService() *ServerTimeService {
 	return &ServerTimeService{c: c}
 }
 
+func (c *Client) NewExchangeInfoService() *ExchangeInfoService {
+	return &ExchangeInfoService{c: c}
+}
+
 // NewDepthService init depth service
 func (c *Client) NewDepthService() *DepthService {
 	return &DepthService{c: c}
@@ -282,4 +295,9 @@ func (c *Client) NewKeepaliveUserStreamService() *KeepaliveUserStreamService {
 // NewCloseUserStreamService init closing user stream service
 func (c *Client) NewCloseUserStreamService() *CloseUserStreamService {
 	return &CloseUserStreamService{c: c}
+}
+
+// NewTickerPriceService init get symbol price ticker
+func (c *Client) NewSymbolPriceService() *SymbolPriceService {
+	return &SymbolPriceService{c: c}
 }

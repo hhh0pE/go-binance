@@ -17,6 +17,7 @@ type CreateOrderService struct {
 	newClientOrderID *string
 	stopPrice        *string
 	icebergQuantity  *string
+	newOrderRespType NewOrderRespType
 }
 
 // Symbol set symbol
@@ -73,6 +74,12 @@ func (s *CreateOrderService) IcebergQuantity(icebergQuantity string) *CreateOrde
 	return s
 }
 
+// NewOrderRespType set newOrderRespType
+func (s *CreateOrderService) NewOrderRespType(newOrderRespType NewOrderRespType) *CreateOrderService {
+	s.newOrderRespType = newOrderRespType
+	return s
+}
+
 func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, opts ...RequestOption) (data []byte, err error) {
 	r := &request{
 		method:   "POST",
@@ -80,12 +87,12 @@ func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, o
 		secType:  secTypeSigned,
 	}
 	m := params{
-		"symbol":      s.symbol,
-		"side":        s.side,
-		"type":        s.orderType,
-		"timeInForce": s.timeInForce,
-		"quantity":    s.quantity,
-		"price":       s.price,
+		"symbol": s.symbol,
+		"side":   s.side,
+		"type":   s.orderType,
+		// "timeInForce": s.timeInForce,
+		"quantity": s.quantity,
+		// "price":    s.price,
 	}
 	if s.newClientOrderID != nil {
 		m["newClientOrderId"] = *s.newClientOrderID
@@ -96,7 +103,18 @@ func (s *CreateOrderService) createOrder(ctx context.Context, endpoint string, o
 	if s.icebergQuantity != nil {
 		m["icebergQty"] = *s.icebergQuantity
 	}
+	if s.timeInForce != "" {
+		m["timeInForce"] = s.timeInForce
+	}
+	if s.price != "" {
+		m["price"] = s.price
+	}
+	if s.newOrderRespType != "" {
+		m["newOrderRespType"] = s.newOrderRespType
+	}
+
 	r.setFormParams(m)
+
 	data, err = s.c.callAPI(ctx, r, opts...)
 	if err != nil {
 		return
@@ -130,6 +148,13 @@ type CreateOrderResponse struct {
 	OrderID       int64  `json:"orderId"`
 	ClientOrderID string `json:"clientOrderId"`
 	TransactTime  int64  `json:"transactTime"`
+	Price         string `json:"price"`
+	OrigQty       string `json:"origQty"`
+	ExecutedQty   string `json:"executedQty"`
+	Status        string `json:"status"`
+	TimeInForce   string `json:"timeInForce"`
+	Type          string `json:"type"`
+	Side          string `json:"side"`
 }
 
 // ListOpenOrdersService list opened orders
@@ -213,6 +238,7 @@ func (s *GetOrderService) Do(ctx context.Context, opts ...RequestOption) (res *O
 	if err != nil {
 		return
 	}
+	// fmt.Println(string(data[:]))
 	return
 }
 
