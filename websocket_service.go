@@ -3,7 +3,13 @@ package binance
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
+
+	"github.com/buger/jsonparser"
+	"github.com/hhh0pE/decimal"
+	"github.com/hhh0pE/golang-json-decoder-case-sensitive"
+	"go.uber.org/zap"
 )
 
 var (
@@ -145,4 +151,113 @@ func WsUserDataServe(listenKey string, handler WsHandler) (chan struct{}, error)
 	endpoint := fmt.Sprintf("%s/%s", baseURL, listenKey)
 	cfg := newWsConfig(endpoint)
 	return wsServe(cfg, handler)
+}
+
+type WsUserEventType struct {
+	EventType string `json:"e"`
+}
+
+type WsUserTradeEvent struct {
+	EventType       string          `json:"e"`
+	EventTime       int64           `json:"E"`
+	Symbol          string          `json:"s"`
+	ClientOrderID   string          `json:"c"`
+	Side            string          `json:"S"`
+	OrderType       string          `json:"o"`
+	TimeInForce     string          `json:"f"`
+	OrderQuantity   decimal.Decimal `json:"q"`
+	OrderPrice      decimal.Decimal `json:"p"`
+	StopPrice       decimal.Decimal `json:"P"`
+	IcebergQuantity decimal.Decimal `json:"F"`
+	//Ignore int
+	OriginalClientOrderID    string          `json:"C"`
+	ExecutionType            string          `json:"x"`
+	OrderStatus              string          `json:"X"`
+	RejectReason             string          `json:"r"`
+	OrderID                  int64           `json:"i"`
+	LastExecutedQuantity     decimal.Decimal `json:"l"`
+	CumulativeFilledQuantity decimal.Decimal `json:"z"`
+	LastExecutedPrice        decimal.Decimal `json:"L"`
+	CommissionAmount         decimal.Decimal `json:"n"`
+	CommissionAsset          string          `json:"N"`
+	TransactionTime          int64           `json:"T"`
+	TradeID                  int64           `json:"t"`
+	//Ignore int64
+	IsOrderWorking bool `json:"w"`
+	IsMaker        bool `json:"m"`
+}
+
+type WsUserTradeHandler func(event *WsUserTradeEvent)
+
+func WsUserTradesServe(listenKey string, handler WsUserTradeHandler) (chan struct{}, error) {
+	endpoint := fmt.Sprintf("%s/%s", baseURL, listenKey)
+	cfg := newWsConfig(endpoint)
+	wsHandler := func(message []byte) {
+		eventType, eventType_err := jsonparser.GetString(message, "e")
+		if eventType_err != nil {
+			log.Println("WsUserTradesServe getting eventType error", zap.Error(eventType_err), zap.String("msg", string(message)))
+			return
+		}
+
+		if eventType == "executionReport" {
+			log.Println("WsUserTradesServe raw msg", string(message))
+			tradeEvent := new(WsUserTradeEvent)
+			decoding_err := jsondecoder_casesensitive.Decode(message, tradeEvent)
+			if decoding_err != nil {
+				log.Println("WsUserTradesServe decoding json error", zap.Error(decoding_err), zap.String("msg", string(message)))
+				return
+			}
+			handler(tradeEvent)
+		} else if eventType == "" {
+			log.Println("WsUserTradesServe: Empty EventType!")
+		}
+	}
+	return wsServe(cfg, wsHandler)
+}
+
+type WsUserAccountEvent struct {
+	EventType            string          `json:"e"`
+	EventTime            int64           `json:"E"`
+	MakerCommissionRate  float64         `json:"m"`
+	TakerCommissionRate  float64         `json:"t"`
+	BuyerCommissionRate  float64         `json:"b"`
+	SellerCommissionRate float64         `json:"s"`
+	CanTrade             bool            `json:"T"`
+	CanWithdraw          bool            `json:"W"`
+	CanDeposit           bool            `json:"D"`
+	LastAccountUpdate    int64           `json:"u"`
+	Balances             []BalanceUpdate `json:"B"`
+}
+type BalanceUpdate struct {
+	Asset        string          `json:"a"`
+	FreeAmount   decimal.Decimal `json:"f"`
+	LockedAmount decimal.Decimal `json:"l"`
+}
+
+type WsUserAccountHandler func(event *WsUserAccountEvent)
+
+func WsUserAccountServe(listenKey string, handler WsUserAccountHandler) (chan struct{}, error) {
+	endpoint := fmt.Sprintf("%s/%s", baseURL, listenKey)
+	cfg := newWsConfig(endpoint)
+	wsHandler := func(message []byte) {
+		eventType, eventType_err := jsonparser.GetString(message, "e")
+		if eventType_err != nil {
+			log.Println("WsUserAccountServe getting eventType error", zap.Error(eventType_err), zap.String("msg", string(message)))
+			return
+		}
+
+		if eventType == "outboundAccountInfo" {
+			accountEvent := new(WsUserAccountEvent)
+			decoding_err := jsondecoder_casesensitive.Decode(message, accountEvent)
+			if decoding_err != nil {
+				log.Println("WsUserAccountServe json decoding error", zap.Error(decoding_err))
+				return
+			}
+
+			handler(accountEvent)
+		} else if eventType == "" {
+			log.Println("WsUserAccountServe: Empty EventType!", zap.String("msg", string(message)))
+		}
+	}
+	return wsServe(cfg, wsHandler)
 }

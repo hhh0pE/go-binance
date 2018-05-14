@@ -38,9 +38,8 @@ const (
 	OrderTypeLimit  OrderType = "LIMIT"
 	OrderTypeMarket OrderType = "MARKET"
 
-	TimeInForceGTC TimeInForce = "GTC"
-	TimeInForceIOC TimeInForce = "IOC"
-	TimeInForceFOK TimeInForce = "FOK"
+	TimeInForceGTC TimeInForce = "GTC" // Good Till Canceled
+	TimeInForceIOC TimeInForce = "IOC" // Immediate Or Cancel ?
 
 	NewOrderRespTypeAck    NewOrderRespType = "ACK"
 	NewOrderRespTypeResult NewOrderRespType = "RESULT"
@@ -51,8 +50,10 @@ const (
 	recvWindowKey = "recvWindow"
 )
 
+var TimestampOffsetMilliseconds int64
+
 func currentTimestamp() int64 {
-	return int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
+	return (int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)) + TimestampOffsetMilliseconds
 }
 
 func newJSON(data []byte) (j *simplejson.Json, err error) {
@@ -271,6 +272,10 @@ func (c *Client) NewListTradesService() *ListTradesService {
 // NewListDepositsService init listing deposits service
 func (c *Client) NewListDepositsService() *ListDepositsService {
 	return &ListDepositsService{c: c}
+}
+
+func(c *Client) NewCreateDepositAddressService() *DepositAddressService {
+	return &DepositAddressService{c:c}
 }
 
 // NewCreateWithdrawService init creating withdraw service
